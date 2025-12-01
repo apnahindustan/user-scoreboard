@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Live Overlay</title>
+<style>
+body{margin:0;padding:0;background:transparent;font-family:Arial;}
+#board{
+  position:absolute;
+  right:10px;
+  top:20px;
+  width:260px;
+  color:#fff;
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 12px;
+  margin:5px 0;
+  background:rgba(0,0,0,0.55);
+  border-left:4px solid yellow;
+  border-radius:6px;
+}
+.left-box{
+  display:flex;
+  flex-direction:column;
+}
+.team{
+  font-weight:bold;
+  font-size:16px;
+}
+.kills{
+  font-size:18px;
+  font-weight:bold;
+  color:#ffd700;
+}
+.alive-num{
+  font-size:16px;
+  background:#222;
+  padding:3px 8px;
+  border-radius:4px;
+  color:#00e6ff;
+  margin-left:10px;
+}
+</style>
+</head>
+<body>
+
+<div id="board"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAM_vLckdeuYKPHouscSPA_CxE8WlZQbuw",
+  authDomain: "scoreboard-c69c6.firebaseapp.com",
+  databaseURL: "https://scoreboard-c69c6-default-rtdb.firebaseio.com",
+  projectId: "scoreboard-c69c6",
+  storageBucket: "scoreboard-c69c6.firebasestorage.app",
+  messagingSenderId: "727943688192",
+  appId: "1:727943688192:web:077ba0b416957122b968e5"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const board = document.getElementById("board");
+
+onValue(ref(db, "scrims/teams"), (snapshot) => {
+    const data = snapshot.val();
+    if(!data) {
+        board.innerHTML = "<p>No Teams Found</p>";
+        return;
+    }
+
+    // convert object to array with keys
+    let arr = Object.keys(data).map(key => ({
+        id: key,
+        name: data[key].name,
+        kills: Number(data[key].kills),
+        alive: Number(data[key].alive)
+    }));
+
+    // sort by kills desc
+    arr.sort((a,b)=> b.kills - a.kills);
+
+    board.innerHTML = "";
+
+    arr.forEach(t => {
+      board.innerHTML += `
+        <div class="row">
+          <div class="left-box">
+            <div class="team">${t.name}</div>
+          </div>
+
+          <div style="display:flex;align-items:center;">
+            <div class="kills">${t.kills}</div>
+            <div class="alive-num">${t.alive}</div>
+          </div>
+        </div>
+      `;
+    });
+});
+</script>
+
+</body>
+</html>
